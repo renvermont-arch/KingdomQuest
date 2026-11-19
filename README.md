@@ -36,18 +36,20 @@ The production files are written to `dist/`.
 
 ## Publish on GitHub Pages
 
-The site is configured for GitHub Pages at `https://<owner>.github.io/KingdomQuest/`.
+The site is ready for GitHub Pages at `https://<owner>.github.io/KingdomQuest/`.
 
-- `vite.config.js` sets `base: "./"`, so the built JS/CSS load correctly from a project subpath.
-- `.github/workflows/deploy.yml` builds the site and deploys `dist/` automatically on every push to `main`.
+- `vite.config.js` sets `base: "./"`, so the built JS/CSS load correctly from a project subpath instead of the domain root.
+- The committed `dist/` folder is the deployable site.
 
-To enable it once:
+To publish:
 
 1. In the repo, go to **Settings → Pages**.
-2. Under **Build and deployment → Source**, choose **GitHub Actions**.
-3. Push to `main` (or run the **Deploy to GitHub Pages** workflow manually). The site will appear at the URL shown in the Pages settings and in the workflow’s deployment summary.
+2. Under **Build and deployment → Source**, choose **Deploy from a branch**.
+3. Select branch **`main`** and folder **`/dist`**, then save.
 
-If you prefer branch-based Pages instead, set **Source → Deploy from a branch → `main` / `/dist`**. The relative asset paths work with that setup too.
+After you change source files, run `npm run build` and commit the updated `dist/` folder to refresh the live site.
+
+An optional GitHub Actions workflow is included as `github-pages-workflow.yml.example`. If you want automatic builds on every push, copy it to `.github/workflows/deploy.yml` and set Pages **Source** to **GitHub Actions**. Creating workflow files requires a token with the `workflow` scope.
 
 ## Where to edit things
 

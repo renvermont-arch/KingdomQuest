@@ -14,7 +14,7 @@ A sweet little React web game about taxonomy. Identify any rank from **domain** 
 - Personal bests saved in your browser with `localStorage`
 - Fixed full-viewport pixel-art dirt background at 10% opacity, with drifting dinosaur bones, a T-rex skull near the top right, and animated ants climbing upward
 - Soft pastel theme with a light pink, lavender, and blue background; subtle pixel-art fossils and ants keep the scene playful without overwhelming the game
-- Responsive design for phone, tablet, and desktop
+- Responsive design for phone, tablet, and desktop; on phones, quests are grouped into tabs, ladder rungs are paged three at a time, feedback opens in a bottom sheet, and review answers are collapsed until requested
 
 ## Run it locally
 

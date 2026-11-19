@@ -8,6 +8,26 @@ const PEEK_COST = 25;
 const FULL_RANK_POINTS = 25;
 const SKIP_KEY = "__skip__";
 
+// Mobile groups the nine quests into three short, tappable sets so setup stays
+// compact instead of becoming one very long scrolling list.
+const QUEST_GROUPS = [
+  { id: "big", label: "Big picture", modes: ["full", "domain", "kingdom"] },
+  { id: "middle", label: "In between", modes: ["phylum", "class", "order"] },
+  { id: "fine", label: "Up close", modes: ["family", "genus", "species"] },
+];
+
+function groupForMode(mode) {
+  return QUEST_GROUPS.find((group) => group.modes.includes(mode))?.id ?? "big";
+}
+
+// The ladder is split into three short screens on phones; desktops still see
+// every rung at once.
+const LADDER_GROUPS = [FULL_RANKS.slice(0, 3), FULL_RANKS.slice(3, 6), FULL_RANKS.slice(6)];
+
+function pageForRank(rank) {
+  return Math.floor(FULL_RANKS.indexOf(rank) / 3);
+}
+
 function shuffle(list) {
   const copy = [...list];
   for (let i = copy.length - 1; i > 0; i -= 1) {
@@ -95,6 +115,9 @@ function Confetti({ seed }) {
 }
 
 function HomeScreen({ mode, setMode, roundLength, setRoundLength, bestScores, onStart }) {
+  const [activeGroup, setActiveGroup] = useState(() => groupForMode(mode));
+  const selectedQuest = MODE_CONFIG[mode];
+
   return (
     <div className="screen home-screen">
       <section className="hero">
@@ -130,7 +153,21 @@ function HomeScreen({ mode, setMode, roundLength, setRoundLength, bestScores, on
           <p>Each one looks at a different branch of taxonomy.</p>
         </div>
 
-        <div className="mode-grid">
+        <div className="quest-tabs" role="group" aria-label="Quest categories">
+          {QUEST_GROUPS.map((group) => (
+            <button
+              key={group.id}
+              type="button"
+              className={activeGroup === group.id ? "is-active" : ""}
+              aria-pressed={activeGroup === group.id}
+              onClick={() => setActiveGroup(group.id)}
+            >
+              {group.label}
+            </button>
+          ))}
+        </div>
+
+        <div className="mode-grid" data-active-group={activeGroup}>
           {MODE_IDS.map((id) => {
             const item = MODE_CONFIG[id];
             const isActive = mode === id;
@@ -139,6 +176,7 @@ function HomeScreen({ mode, setMode, roundLength, setRoundLength, bestScores, on
               <button
                 key={id}
                 type="button"
+                data-group={groupForMode(id)}
                 className={`mode-card ${isActive ? "is-active" : ""} ${id === "full" ? "is-featured" : ""}`}
                 style={{ "--card-accent": item.accent, "--card-soft": item.soft }}
                 onClick={() => setMode(id)}
@@ -180,6 +218,16 @@ function HomeScreen({ mode, setMode, roundLength, setRoundLength, bestScores, on
         </button>
         <p className="made-with-love">Made with love, for someone who makes the world brighter. ✨</p>
       </section>
+
+      <div className="mobile-start-bar">
+        <div className="mobile-start-copy">
+          <strong>{selectedQuest.icon} {selectedQuest.title}</strong>
+          <span>{roundLength} questions · Best {bestScores[mode].toLocaleString()} pts</span>
+        </div>
+        <button type="button" className="primary" onClick={() => onStart(mode, roundLength)}>
+          Start <span aria-hidden="true">→</span>
+        </button>
+      </div>
     </div>
   );
 }
@@ -285,8 +333,13 @@ function FullGameScreen({
   onExit,
 }) {
   const { organism } = current;
+  const [ladderPage, setLadderPage] = useState(0);
   const ready = FULL_RANKS.every((rank) => fullSelections[rank]);
   const showAnswers = answered && Boolean(lastAnswer?.isFull);
+
+  useEffect(() => {
+    setLadderPage(0);
+  }, [index]);
 
   return (
     <div className="screen game-screen">
@@ -337,13 +390,31 @@ function FullGameScreen({
         <span>{FULL_RANK_POINTS} pts per correct rung</span>
       </p>
 
+      <div className="ladder-pager" role="group" aria-label="Ladder rung groups">
+        {LADDER_GROUPS.map((ranks, page) => (
+          <button
+            key={page}
+            type="button"
+            className={ladderPage === page ? "is-active" : ""}
+            aria-pressed={ladderPage === page}
+            onClick={() => setLadderPage(page)}
+          >
+            <span>{page === 2 ? "7–8" : `${page * 3 + 1}–${page * 3 + 3}`}</span>
+            <small>{ranks.filter((rank) => fullSelections[rank]).length}/{ranks.length} picked</small>
+          </button>
+        ))}
+      </div>
+
       <div className="ladder">
         {FULL_RANKS.map((rank, position) => {
           const result = showAnswers ? lastAnswer?.rankResults?.[rank] : null;
           const value = showAnswers ? (result?.selected ?? "") : (fullSelections[rank] ?? "");
 
           return (
-            <div className="ladder-row" key={rank}>
+            <div
+              className={`ladder-row ${pageForRank(rank) !== ladderPage ? "is-mobile-hidden" : ""}`}
+              key={rank}
+            >
               <span className="ladder-number">{position + 1}</span>
               <span className="ladder-rank">{rank}</span>
               <div className={`ladder-select-wrap ${showAnswers ? "is-answered" : ""}`}>
@@ -372,8 +443,6 @@ function FullGameScreen({
         })}
       </div>
 
-      {showAnswers && lastAnswer && <FullFeedback answer={lastAnswer} organism={organism} />}
-
       {!answered ? (
         <div className="ladder-actions">
           <button type="button" className="text-button" onClick={onSkip}>Skip for now</button>
@@ -385,9 +454,18 @@ function FullGameScreen({
           </div>
         </div>
       ) : (
-        <button type="button" className="primary next-button" onClick={onNext}>
-          {index + 1 === total ? "See results" : "Next creature"} <span aria-hidden="true">→</span>
-        </button>
+        showAnswers && lastAnswer && (
+          <>
+            <div className="answer-scrim" aria-hidden="true" />
+            <div className="answer-panel">
+              <span className="sheet-handle" aria-hidden="true" />
+              <FullFeedback answer={lastAnswer} organism={organism} />
+              <button type="button" className="primary next-button" onClick={onNext}>
+                {index + 1 === total ? "See results" : "Next creature"} <span aria-hidden="true">→</span>
+              </button>
+            </div>
+          </>
+        )
       )}
     </div>
   );
@@ -489,26 +567,31 @@ function GameScreen({
         })}
       </section>
 
-      {answered && lastAnswer && (
-        <Feedback
-          answer={lastAnswer}
-          mode={config.id}
-          config={config}
-          question={current}
-          isCorrect={isCorrect}
-          skipped={skipped}
-        />
-      )}
-
       {!answered ? (
         <div className="question-actions">
           <button type="button" className="text-button" onClick={onSkip}>Skip for now</button>
           <span className="best-streak">Best streak this round: {bestStreak} 🔥</span>
         </div>
       ) : (
-        <button type="button" className="primary next-button" onClick={onNext}>
-          {index + 1 === total ? "See results" : "Next creature"} <span aria-hidden="true">→</span>
-        </button>
+        lastAnswer && (
+          <>
+            <div className="answer-scrim" aria-hidden="true" />
+            <div className="answer-panel">
+              <span className="sheet-handle" aria-hidden="true" />
+              <Feedback
+                answer={lastAnswer}
+                mode={config.id}
+                config={config}
+                question={current}
+                isCorrect={isCorrect}
+                skipped={skipped}
+              />
+              <button type="button" className="primary next-button" onClick={onNext}>
+                {index + 1 === total ? "See results" : "Next creature"} <span aria-hidden="true">→</span>
+              </button>
+            </div>
+          </>
+        )
       )}
     </div>
   );
@@ -527,6 +610,7 @@ function ResultsScreen({
   onRestart,
   onHome,
 }) {
+  const [showAllAnswers, setShowAllAnswers] = useState(false);
   const verdict =
     accuracy === 100
       ? { emoji: "🏆", title: "Taxonomy Superstar!", line: "You classified every single one. My heart is officially impressed." }
@@ -558,7 +642,7 @@ function ResultsScreen({
           <h2>Your creature review</h2>
           <p>Personal best for this quest: <b>{bestScore.toLocaleString()}</b> pts</p>
         </div>
-        <ul className="review-list">
+        <ul className={`review-list ${showAllAnswers ? "is-expanded" : ""}`}>
           {answers.map((answer, index) => {
             const results = Object.values(answer.rankResults ?? {});
             const isFullAnswer = Boolean(answer.isFull || results.length);
@@ -602,6 +686,9 @@ function ResultsScreen({
             );
           })}
         </ul>
+        <button type="button" className="review-toggle" onClick={() => setShowAllAnswers((previous) => !previous)}>
+          {showAllAnswers ? "Show fewer answers" : `Show all ${answers.length} answers`}
+        </button>
       </section>
 
       <div className="result-actions">

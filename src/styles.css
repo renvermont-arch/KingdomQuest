@@ -18,6 +18,8 @@ body {
 button {
   font: inherit;
   cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 button:focus-visible {
   outline: 3px solid #4b3a49;
@@ -1134,8 +1136,8 @@ button:focus-visible {
   0% { transform: translateY(30px); opacity: 0; }
   20% { opacity: 0.75; }
   100% { transform: translateY(-160px); opacity: 0; }}/* Animations */@keyframes fade-in {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }}
+  from { opacity: 0; }
+  to { opacity: 1; }}
 @keyframes pop {
   0% { opacity: 0; transform: scale(0.97) translateY(6px); }
   100% { opacity: 1; transform: scale(1) translateY(0); }}
@@ -1150,7 +1152,26 @@ button:focus-visible {
   50% { opacity: 0.85; transform: scale(1.15) rotate(20deg); }}
 @keyframes confetti-fall {
   0% { transform: translateY(-10px) rotate(0deg); opacity: 1; }
-  100% { transform: translateY(330px) rotate(540deg); opacity: 0; }}/* Responsive */@media (max-width: 780px) {
+  100% { transform: translateY(330px) rotate(540deg); opacity: 0; }}
+
+/* Compact mobile controls — hidden until the small-screen layout kicks in. */
+.quest-tabs,
+.mobile-start-bar,
+.ladder-pager,
+.answer-scrim,
+.sheet-handle,
+.review-toggle {
+  display: none;
+}
+.answer-panel {
+  display: contents;
+}
+@keyframes sheet-up {
+  from { opacity: 0; transform: translateY(28px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive */@media (max-width: 780px) {
   .shell {
   padding: 22px 14px 48px;
   }
@@ -1243,6 +1264,501 @@ button:focus-visible {
   grid-template-columns: 1fr;
   }
 }
+/* --- Organized small-screen layout ---------------------------------------
+   Phones get tabbed quests, paged rungs and answer sheets instead of one
+   endless scrolling column. Desktop keeps the original layout above. */
+@media (max-width: 780px) {
+  .app {
+    min-height: 100dvh;
+    overflow-x: hidden;
+  }
+  .shell {
+    padding: 14px 12px 30px;
+  }
+  .eyebrow {
+    padding: 5px 10px;
+    font-size: 0.64rem;
+  }
+
+  /* Home: short intro, three quest tabs, docked Start button. */
+  .hero {
+    gap: 8px;
+    margin-bottom: 14px;
+    text-align: left;
+  }
+  .hero-copy h1 {
+    font-size: 2.35rem;
+    margin: 8px 0 6px;
+  }
+  .hero-copy > p {
+    font-size: 0.86rem;
+    line-height: 1.45;
+  }
+  .hero-hearts {
+    gap: 6px;
+    margin-top: 10px;
+  }
+  .hero-hearts span {
+    width: 32px;
+    height: 32px;
+    font-size: 0.95rem;
+  }
+  .setup {
+    padding: 16px 14px;
+    border-radius: 22px;
+  }
+  .section-heading h2 {
+    font-size: 1.02rem;
+  }
+  .section-heading p {
+    font-size: 0.76rem;
+  }
+  .section-heading.second {
+    margin-top: 18px;
+  }
+  .quest-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    margin-top: 12px;
+    padding: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.95);
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.78);
+  }
+  .quest-tabs button {
+    border: 0;
+    border-radius: 999px;
+    padding: 8px 3px;
+    background: transparent;
+    color: #8f7686;
+    font-size: 0.76rem;
+    font-weight: 800;
+  }
+  .quest-tabs button.is-active {
+    background: var(--accent);
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(122, 83, 105, 0.18);
+  }
+  .mode-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .mode-grid[data-active-group="big"] .mode-card:not([data-group="big"]),
+  .mode-grid[data-active-group="middle"] .mode-card:not([data-group="middle"]),
+  .mode-grid[data-active-group="fine"] .mode-card:not([data-group="fine"]) {
+    display: none;
+  }
+  .mode-card {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr) auto;
+    grid-template-areas:
+      "icon title best"
+      "icon rank best";
+    align-items: center;
+    column-gap: 10px;
+    padding: 9px 11px;
+    min-height: 62px;
+    border-radius: 16px;
+  }
+  .mode-card:hover,
+  .mode-card.is-active {
+    transform: none;
+  }
+  .mode-icon {
+    grid-area: icon;
+    width: 40px;
+    height: 40px;
+    margin: 0;
+    border-radius: 13px;
+    font-size: 1.25rem;
+  }
+  .mode-card > strong {
+    grid-area: title;
+    font-size: 0.96rem;
+  }
+  .mode-rank {
+    grid-area: rank;
+    margin: 1px 0 0;
+    font-size: 0.63rem;
+    letter-spacing: 0.05em;
+  }
+  .mode-blurb,
+  .mode-card.is-featured::after {
+    display: none;
+  }
+  .mode-best {
+    grid-area: best;
+    margin: 0;
+    padding: 5px 8px;
+    font-size: 0.68rem;
+    white-space: nowrap;
+  }
+  .length-picker {
+    gap: 6px;
+    margin-top: 10px;
+  }
+  .length-picker button {
+    flex: 1;
+    padding: 9px 3px;
+    font-size: 0.8rem;
+  }
+  .start-button {
+    display: none;
+  }
+  .home-screen {
+    padding-bottom: 80px;
+  }
+  .made-with-love {
+    font-size: 0.72rem;
+  }
+  .mobile-start-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 20;
+    padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+    border-top: 1px solid rgba(255, 255, 255, 0.96);
+    background: rgba(255, 255, 255, 0.94);
+    box-shadow: 0 -10px 30px rgba(122, 83, 105, 0.14);
+    backdrop-filter: blur(14px);
+  }
+  .mobile-start-copy {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .mobile-start-copy strong {
+    font-size: 0.9rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .mobile-start-copy span {
+    color: #9a8290;
+    font-size: 0.7rem;
+  }
+  .mobile-start-bar .primary {
+    flex: none;
+    padding: 11px 20px;
+    font-size: 0.92rem;
+  }
+
+  /* Game: one tidy question per screen. */
+  .game-top {
+    flex-wrap: nowrap;
+    gap: 7px;
+    margin-bottom: 10px;
+  }
+  .icon-button {
+    width: 38px;
+    height: 38px;
+  }
+  .mode-tag {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 8px 12px;
+    font-size: 0.82rem;
+    text-align: center;
+  }
+  .live-stats {
+    order: 0;
+    flex: none;
+    width: auto;
+    justify-content: flex-end;
+  }
+  .live-stats span {
+    padding: 8px 10px;
+    font-size: 0.78rem;
+  }
+  .progress-track {
+    height: 8px;
+    margin-bottom: 8px;
+  }
+  .question-meta {
+    margin-bottom: 7px;
+    font-size: 0.66rem;
+  }
+  .question-card {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 12px;
+    min-height: 0;
+    padding: 14px;
+    margin-bottom: 12px;
+    border-radius: 22px;
+    text-align: left;
+  }
+  .creature-emoji {
+    flex-basis: 62px;
+    width: 62px;
+    height: 62px;
+    border-radius: 18px;
+    font-size: 2.4rem;
+  }
+  .creature-info h2 {
+    margin-bottom: 3px;
+    font-size: 1.15rem;
+  }
+  .clue {
+    font-size: 0.84rem;
+    line-height: 1.4;
+  }
+  .peek-button {
+    margin-top: 8px;
+    padding: 6px 10px;
+    font-size: 0.76rem;
+  }
+  .sci-name {
+    margin-top: 8px;
+    font-size: 0.84rem;
+  }
+  .options {
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+  .option {
+    min-height: 58px;
+    padding: 10px 14px;
+    border-radius: 16px;
+  }
+  .option-label {
+    font-size: 0.93rem;
+  }
+  .option-hint {
+    font-size: 0.72rem;
+  }
+  .question-actions {
+    padding: 2px 2px 6px;
+  }
+  .best-streak {
+    font-size: 0.74rem;
+  }
+
+  /* Feedback slides up as a sheet instead of extending the page. */
+  .answer-scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    background: rgba(64, 40, 55, 0.34);
+    touch-action: none;
+    animation: fade-in 0.2s ease both;
+  }
+  .answer-panel {
+    display: block;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 31;
+    max-height: 76dvh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    padding: 9px 14px calc(14px + env(safe-area-inset-bottom));
+    border-radius: 26px 26px 0 0;
+    background: #fffafd;
+    box-shadow: 0 -14px 40px rgba(88, 56, 74, 0.22);
+    animation: sheet-up 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .sheet-handle {
+    display: block;
+    width: 42px;
+    height: 5px;
+    margin: 0 auto 10px;
+    border-radius: 999px;
+    background: #e6d5df;
+  }
+  .answer-panel .feedback {
+    margin-bottom: 12px;
+    padding: 15px;
+    border-radius: 18px;
+  }
+  .answer-panel .feedback-copy h3 {
+    font-size: 1rem;
+  }
+  .answer-panel .feedback-copy p {
+    font-size: 0.86rem;
+  }
+  .answer-panel .next-button {
+    position: sticky;
+    bottom: 0;
+    z-index: 1;
+    width: 100%;
+  }
+
+  /* Full Ladder: three rungs per screen with a compact page switcher. */
+  .ladder-intro {
+    margin: 0 2px 8px;
+    font-size: 0.8rem;
+  }
+  .ladder-pager {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .ladder-pager button {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 7px 3px;
+    border: 2px solid #f1e5ec;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.9);
+    color: #8f7686;
+  }
+  .ladder-pager button span {
+    font-size: 0.82rem;
+    font-weight: 800;
+  }
+  .ladder-pager button small {
+    font-size: 0.64rem;
+    font-weight: 700;
+  }
+  .ladder-pager button.is-active {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    color: #5b3a4d;
+  }
+  .ladder {
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .ladder-row.is-mobile-hidden {
+    display: none;
+  }
+  .ladder-row {
+    grid-template-columns: 24px 78px minmax(0, 1fr);
+    gap: 8px;
+    padding: 6px 9px;
+    border-radius: 13px;
+  }
+  .ladder-number {
+    grid-row: auto;
+    width: 24px;
+    height: 24px;
+    font-size: 0.7rem;
+  }
+  .ladder-rank,
+  .ladder-select-wrap {
+    grid-column: auto;
+  }
+  .ladder-rank {
+    font-size: 0.63rem;
+  }
+  .ladder select {
+    padding: 8px 10px;
+    font-size: 16px; /* prevents iOS from zooming on focus */
+  }
+  .ladder-actions {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+  }
+  .ladder-action-right {
+    flex: 1;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+    width: auto;
+  }
+  .ladder-action-right .primary {
+    width: auto;
+    padding: 11px 16px;
+    font-size: 0.88rem;
+  }
+  .points-note {
+    display: none;
+  }
+
+  /* Results: a short review with an optional "show all" expander. */
+  .result-hero {
+    padding: 20px 16px;
+    margin-bottom: 14px;
+    border-radius: 24px;
+  }
+  .result-emoji {
+    font-size: 3.2rem;
+  }
+  .result-hero h1 {
+    font-size: 1.7rem;
+  }
+  .result-hero p {
+    font-size: 0.87rem;
+  }
+  .stats-grid {
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .stats-grid > div {
+    padding: 12px 8px;
+    border-radius: 16px;
+  }
+  .stats-grid strong {
+    font-size: 1.3rem;
+  }
+  .review {
+    padding: 16px 14px;
+    margin-bottom: 14px;
+    border-radius: 22px;
+  }
+  .review-list {
+    gap: 7px;
+  }
+  .review-list li:nth-child(n + 4) {
+    display: none;
+  }
+  .review-list.is-expanded li:nth-child(n + 4) {
+    display: flex;
+  }
+  .review-toggle {
+    display: block;
+    width: 100%;
+    margin-top: 10px;
+    padding: 10px;
+    border: 2px solid #f0dfe7;
+    border-radius: 999px;
+    background: #fff;
+    color: #7c6674;
+    font-size: 0.82rem;
+    font-weight: 800;
+  }
+  .result-actions {
+    position: sticky;
+    bottom: 0;
+    gap: 8px;
+    padding: 8px 0 calc(8px + env(safe-area-inset-bottom));
+    background: linear-gradient(180deg, rgba(253, 243, 247, 0), #fdf3f7 28%);
+  }
+  .result-actions button {
+    padding: 12px 18px;
+    font-size: 0.92rem;
+  }
+}
+
+@media (max-width: 780px) and (max-height: 700px) {
+  .hero-copy > p,
+  .hero-hearts,
+  .made-with-love {
+    display: none;
+  }
+  .hero {
+    margin-bottom: 10px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

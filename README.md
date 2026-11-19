@@ -1,6 +1,6 @@
 # Kingdom Quest 💗
 
-A sweet little React web game about taxonomy. Identify the **kingdom**, **phylum**, or **class** of a living thing using clues, then learn a fun fact about it.
+A sweet little React web game about taxonomy. Identify any rank from **domain** down to **species** using clues, then learn a fun fact about it.
 
 ## Features
 
@@ -33,6 +33,21 @@ npm run preview
 ```
 
 The production files are written to `dist/`.
+
+## Publish on GitHub Pages
+
+The site is configured for GitHub Pages at `https://<owner>.github.io/KingdomQuest/`.
+
+- `vite.config.js` sets `base: "./"`, so the built JS/CSS load correctly from a project subpath.
+- `.github/workflows/deploy.yml` builds the site and deploys `dist/` automatically on every push to `main`.
+
+To enable it once:
+
+1. In the repo, go to **Settings → Pages**.
+2. Under **Build and deployment → Source**, choose **GitHub Actions**.
+3. Push to `main` (or run the **Deploy to GitHub Pages** workflow manually). The site will appear at the URL shown in the Pages settings and in the workflow’s deployment summary.
+
+If you prefer branch-based Pages instead, set **Source → Deploy from a branch → `main` / `/dist`**. The relative asset paths work with that setup too.
 
 ## Where to edit things
 
